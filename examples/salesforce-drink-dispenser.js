@@ -26,18 +26,23 @@ cylon.robot({
     });
    */
 
-    var counter = 10;
+    var dispenserId = 1;
+    var drinkId = 1;
 
     my.button.on('push', function() {
-      var collisions = Math.floor(Math.random() * 10);
-      var seconds = Math.floor(Math.random() * 1000) / 100;
-      var toSend = { gameId: counter, playerId: 'player' + Math.random(1), collisions: collisions, seconds: seconds };
+      var date = new Date(),
+          dateStr = date.toISOString(),
+          toSend = { dispenserId: dispenserId,
+                     drinkId: drinkId,
+                     event: 'dispense',
+                     eventTimestamp: dateStr,
+                     details: 'dispenserId:' + dispenserId + ', drinkId:' + drinkId};
 
-      my.salesforce.post('/RaceController/', toSend, function(err, data) {
-        cylon.Logger.info('Race Stored:' + counter + ' has been sent to Salesforce.');
+      my.salesforce.post('/Drink/', toSend, function(err, data) {
+        cylon.Logger.info('Drink served and stored in salesforce');
+        console.log('Err:', err);
+        console.log('Data:', data);
       });
-
-      counter++;
     });
   }
 });
