@@ -1,5 +1,7 @@
-var Cylon = require('cylon');
-var async = require('async');
+"use strict";
+
+var Cylon = require('cylon'),
+    async = require('async');
 
 var LightStrip = require('./lightstrip');
 
@@ -15,17 +17,21 @@ Cylon.api();
 
 Cylon.robot({
   name: "DF14-Game",
-  red: 0,
-  green: 0,
-  blue: 255,
-  shakePower: 0,
+
   running: false,
+
   connections: [
     { name: 'sphero1', adaptor: 'sphero', port: '/dev/rfcomm0' },
-    { name: 'arduino', adaptor: 'firmata', port: '/dev/ttyACM0'},
-    //{ name: 'sphero2', adaptor: 'sphero', port: '/dev/rfcomm1' },
+    { name: 'sphero2', adaptor: 'sphero', port: '/dev/rfcomm1' },
 
     { name: 'pebble', adaptor: 'pebble' },
+
+    {
+      name: 'hue',
+      adaptor: 'hue',
+      host: process.env.HUE_HOST,
+      username: process.env.HUE_USERNAME
+    },
 
     {
       name: 'sfcon',
@@ -33,49 +39,46 @@ Cylon.robot({
       sfuser: process.env.SF_USERNAME,
       sfpass: process.env.SF_SECURITY_TOKEN
     }
-
-    //{ name: 'hue', adaptor: 'hue', host: process.argv[2], username: process.argv[3] }
   ],
 
   devices: [
     { name: 'sphero1', driver: 'sphero', connection: 'sphero1' },
-    //{ name: 'sphero2', driver: 'sphero', connection: 'sphero2' },
+    { name: 'sphero2', driver: 'sphero', connection: 'sphero2' },
 
     { name: 'pebble', driver: 'pebble', connection: 'pebble' },
 
     { name: 'salesforce', driver: 'force', connection: 'sfcon' },
 
-    { name: 'bulb1', driver: 'led', connection: 'arduino', pin: 2 },
-    { name: 'bulb2', driver: 'led', connection: 'arduino', pin: 3 },
-    { name: 'bulb3', driver: 'led', connection: 'arduino', pin: 4 },
-    { name: 'bulb4', driver: 'led', connection: 'arduino', pin: 5 },
-    { name: 'bulb5', driver: 'led', connection: 'arduino', pin: 6 },
-    { name: 'bulb6', driver: 'led', connection: 'arduino', pin: 7 }
+    { name: 'bulb1', driver: 'hue-light', connection: 'hue', lightId: 1 },
+    { name: 'bulb2', driver: 'hue-light', connection: 'hue', lightId: 2 },
+    { name: 'bulb3', driver: 'hue-light', connection: 'hue', lightId: 3 },
+    { name: 'bulb4', driver: 'hue-light', connection: 'hue', lightId: 4 },
+    { name: 'bulb5', driver: 'hue-light', connection: 'hue', lightId: 5 },
+    { name: 'bulb6', driver: 'hue-light', connection: 'hue', lightId: 6 },
 
-    //{ name: 'bulb1', driver: 'hue-light', connection: 'hue', lightId: 1 },
-    //{ name: 'bulb2', driver: 'hue-light', connection: 'hue', lightId: 2 },
-    //{ name: 'bulb3', driver: 'hue-light', connection: 'hue', lightId: 3 },
-    //{ name: 'bulb4', driver: 'hue-light', connection: 'hue', lightId: 4 },
-    //{ name: 'bulb5', driver: 'hue-light', connection: 'hue', lightId: 5 },
-    //{ name: 'bulb6', driver: 'hue-light', connection: 'hue', lightId: 6 },
-
-    //{ name: 'bulb7',  driver: 'hue-light', connection: 'hue', lightId: 7 },
-    //{ name: 'bulb8',  driver: 'hue-light', connection: 'hue', lightId: 8 },
-    //{ name: 'bulb9',  driver: 'hue-light', connection: 'hue', lightId: 9 },
-    //{ name: 'bulb10', driver: 'hue-light', connection: 'hue', lightId: 10 },
-    //{ name: 'bulb11', driver: 'hue-light', connection: 'hue', lightId: 11 },
-    //{ name: 'bulb12', driver: 'hue-light', connection: 'hue', lightId: 12 }
+    { name: 'bulb7',  driver: 'hue-light', connection: 'hue', lightId: 7 },
+    { name: 'bulb8',  driver: 'hue-light', connection: 'hue', lightId: 8 },
+    { name: 'bulb9',  driver: 'hue-light', connection: 'hue', lightId: 9 },
+    { name: 'bulb10', driver: 'hue-light', connection: 'hue', lightId: 10 },
+    { name: 'bulb11', driver: 'hue-light', connection: 'hue', lightId: 11 },
+    { name: 'bulb12', driver: 'hue-light', connection: 'hue', lightId: 12 }
   ],
 
   work: function(my) {
-    my.pebble.send_notification("initialized");
     my.sphero1.lights = my.strip1 = new LightStrip([
       my.bulb1, my.bulb2, my.bulb3, my.bulb4, my.bulb5, my.bulb6,
     ]);
 
-    //my.sphero2.lights = my.strip2 = new LightStrip([
-    //  my.bulb7, my.bulb8, my.bulb9, my.bulb10, my.bulb11, my.bulb12,
-    //]);
+    my.sphero2.lights = my.strip2 = new LightStrip([
+      my.bulb7, my.bulb8, my.bulb9, my.bulb10, my.bulb11, my.bulb12,
+    ]);
+
+    my.spheros = [
+      my.sphero1,
+      my.sphero2
+    ];
+
+    my.pebble.send_notification('Initialized.');
 
     my.salesforce.subscribe('RaceMsgOutbound', function(err, data) {
       console.log('arguments: ', arguments);
@@ -84,130 +87,134 @@ Cylon.robot({
       my.pebble.send_notification("Game Time: " + err.sobject.seconds__c + " seconds");
     });
 
-    my.pebble.on('button', function() {
-    //after((1).seconds(), function() {
-      console.log("Starting game.")
-      my.running = false;
+    my.spheros.map(function(sphero) {
+      sphero.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
 
-      my.sphero1.removeAllListeners('levelUp');
-      //my.sphero2.removeAllListeners('levelUp');
+      sphero.updateColor = function() {
+        if (!my.running) {
+          return;
+        }
+
+        var hexColor = ((1 << 24) + (sphero.red << 16) + (sphero.green << 8) + (sphero.blue - sphero.red)) & 0xffffff;
+        sphero.setRGB(hexColor);
+      };
+
+      sphero.checkPower = function() {
+        if (my.running && sphero.shakePower > 255) {
+          sphero.blue = 255;
+          sphero.red = 0;
+          sphero.green = 0;
+
+          sphero.shakePower = 0;
+
+          sphero.emit('levelUp', sphero);
+        }
+      };
+
+      every(400, function() {
+        if (my.running) {
+          sphero.checkPower();
+          sphero.updateColor();
+        } else {
+          sphero.setColor('yellow');
+        }
+      });
+    });
+
+    my.pebble.on('button', function() {
+      console.log("Starting game.");
+
+      my.running = false;
+      my.maxLevel = 6;
+
+      my.spheros.map(function(sphero) {
+        sphero.removeAllListeners('levelUp');
+        sphero.removeAllListeners('data');
+      });
 
       my.startGame(my);
     });
   },
 
   startGame: function(my) {
-    var gameStartDate = new Date();
     my.countdown(my, function() {
-      var maxLevel = 6;
-      my.running = true
+      my.running = true,
 
-      my.sphero1.level = 1;
-      //my.sphero2.level = 1;
+      my.spheros.map(function(sphero) {
+        sphero.level = 1;
 
-      // sphero code goes somewhere around here, emits 'levelUp' event when
-      // shaken enough to kick things up a level.
+        sphero.red = 0;
+        sphero.green = 0;
+        sphero.blue = 0;
 
-      var listener = function() {
-        if (!my.running) {
-          return;
-        }
+        sphero.shakePower = 0;
 
-        this.level++;
+        sphero.on('data', function(data) {
+          var delta = Math.max(Math.abs(data[0]), Math.abs(data[1])) / 50 | 0;
+          sphero.shakePower += delta;
+          sphero.red = sphero.shakePower;
+        });
 
-        this.lights.green(this.level);
-
-        if (this.level === maxLevel) {
-          my.running = false;
-          //this.setRGB(0, 255, 0);
-          var endTime = new Date();
-          var toSend = {
-            gameId: gameStartDate.getTime()/ 1000,
-            playerId: 'player' + Math.random(1),
-            seconds:  (endTime.getTime() - gameStartDate.getTime()) / 1000,
-            collisions: 100
-          };
-          my.salesforce.push('/RaceController/', toSend, function(err, data) {
-            console.log(err);
-            console.log('Race Stored:' + gameStartDate.getTime() + ' has been sent to Salesforce.');
-          });
-        }
-      };
-
-      my.sphero1.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
-
-      my.sphero1.on('data', function(data) {
-        my.addShakeDelta(data[0],data[1]);
+        sphero.on('levelUp', my.levelUp());
       });
-
-      every((0.4).second(), function() {
-        if (my.running) {
-          my.verifyMaxPowerReached(my.sphero1);
-          my.updateColor(my.sphero1);
-        } else {
-          my.sphero1.setColor('yellow');
-        }
-      });
-
-      my.sphero1.on('levelUp', listener.bind(my.sphero1));
-      //my.sphero2.on('levelUp', listener.bind(my.sphero2));
     });
   },
 
+  levelUp: function() {
+    return function(sphero) {
+      if (!this.running) {
+        return;
+      }
+
+      sphero.level++;
+
+      sphero.lights.green(sphero.level);
+
+      if (sphero.level === this.maxLevel) {
+        this.running = false;
+        sphero.setRGB(0, 255, 0);
+      }
+    }.bind(this);
+  },
+
   countdown: function(my, callback) {
-    //my.sphero1.setRGB(255, 255, 255);
-    my.sphero1.setRGB(0xffffff);
-    //my.sphero2.setRGB(255, 255, 255);
+
+    my.spheros.map(function(sphero) { sphero.setRGB(0xffffff); });
 
     my.strip1.red();
-    my.sphero1.setColor('red');
-    //my.strip2.red();
+    my.strip2.red();
+
+    my.spheros.map(function(sphero) { sphero.setColor('red'); });
 
     async.series([
       function(cb) {
         after((1).second(), function() {
           my.strip1.yellow();
-          my.sphero1.setColor('yellow');
-          //my.strip2.yellow();
+          my.strip2.yellow();
+          my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
           cb(null, true);
         });
       },
+
       function(cb) {
         after((1).second(), function() {
           my.strip1.green();
-          my.sphero1.setColor('green');
-          //  //my.strip2.green();
+          my.strip2.green();
+          my.spheros.map(function(sphero) { sphero.setColor('green'); });
           cb(null, true);
         });
       },
+
       function(cb) {
         after((1).second(), function() {
           my.strip1.green(1);
-          my.sphero1.setColor('blue');
-          //  //my.strip2.green(1);
+          my.strip2.green(1);
+          my.spheros.map(function(sphero) { sphero.setColor('blue'); });
           cb(null, true);
         });
-      }
-    ], function(){
-      callback()
-    })
-  },
-  addShakeDelta: function(x, y) {
-    var shakeDelta = Math.max(Math.abs(x), Math.abs(y))/50 | 0;
-    this.shakePower += shakeDelta;
-    this.red = this.shakePower;
-  },
-  verifyMaxPowerReached: function(sphero) {
-    if(this.shakePower > 255) {
-      this.blue = 255;
-      this.red = 0;
-      this.green = 0;
-      this.shakePower = 0;
-      sphero.emit('levelUp');
-    }
-  },
-  updateColor: function(sphero) {
-    var hexColor = ((1 << 24) + (this.red << 16) + (this.green << 8) + (this.blue - this.red)) & 0xffffff;
-    sphero.setRGB(hexColor);
-  },
-}).start();
+      },
+    ], callback);
+  }
+});
+
+Cylon.start();

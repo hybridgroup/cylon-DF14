@@ -30,7 +30,7 @@ LightStrip.prototype.color = function(num, color) {
   bulbs.map(function(bulb) {
     console.log(bulb.name + ": " + JSON.stringify(color));
     bulb.turnOn();
-   // bulb.rgb(color.r, color.g, color.b);
+    bulb.rgb(color.r, color.g, color.b);
   });
 }
 
