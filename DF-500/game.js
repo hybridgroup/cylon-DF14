@@ -44,7 +44,7 @@ Cylon.robot({
     { name: 'pebble', driver: 'pebble', connection: 'pebble' },
 
     { name: 'salesforce', driver: 'force', connection: 'sfcon' },
-    
+
     { name: 'bulb1', driver: 'led', connection: 'arduino', pin: 2 },
     { name: 'bulb2', driver: 'led', connection: 'arduino', pin: 3 },
     { name: 'bulb3', driver: 'led', connection: 'arduino', pin: 4 },
@@ -121,9 +121,9 @@ Cylon.robot({
           my.running = false;
           //this.setRGB(0, 255, 0);
           var endTime = new Date();
-          var toSend = { 
-            gameId: gameStartDate.getTime()/ 1000, 
-            playerId: 'player' + Math.random(1), 
+          var toSend = {
+            gameId: gameStartDate.getTime()/ 1000,
+            playerId: 'player' + Math.random(1),
             seconds:  (endTime.getTime() - gameStartDate.getTime()) / 1000,
             collisions: 100
           };
@@ -135,7 +135,7 @@ Cylon.robot({
       };
 
       my.sphero1.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
-   
+
       my.sphero1.on('data', function(data) {
         my.addShakeDelta(data[0],data[1]);
       });
