@@ -2,6 +2,10 @@
 
 var LightStrip = module.exports = function LightStrip(lights) {
   this.lights = lights;
+  this.lights.map(function(light) {
+    light.turnOn();
+    light.rgb(0,0,0);
+  });
 };
 
 // Lights up some of the Hues
@@ -23,13 +27,11 @@ LightStrip.prototype.color = function(num, color) {
 
   this.lights.map(function(light) {
     if (!~bulbs.indexOf(light)) {
-      light.turnOff();
+      light.rgb(0,0,0);
     }
   });
 
   bulbs.map(function(bulb) {
-    console.log(bulb.name + ": " + JSON.stringify(color));
-    bulb.turnOn();
     bulb.rgb(color.r, color.g, color.b);
   });
 }

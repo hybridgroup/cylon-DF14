@@ -1,3 +1,4 @@
+// SF_USERNAME=cylon-df-2014@yopmail.com SF_SECURITY_TOKEN=Passw0rdE0n1sDlQOoelDlYwmnRsALSa HUE_HOST=192.168.1.85 HUE_USERNAME=35dacee025cd94cf3f50bb301ad8b4bf node game.js
 "use strict";
 
 var Cylon = require('cylon'),
@@ -84,42 +85,9 @@ Cylon.robot({
       console.log('arguments: ', arguments);
       console.log('err received:', err);
       console.log('data received:', data);
-      my.pebble.send_notification("Game Time: " + err.sobject.seconds__c + " seconds");
+      my.pebble.send_notification("Game Time: " + data.sobject.seconds__c + " seconds");
     });
 
-    my.spheros.map(function(sphero) {
-      sphero.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
-
-      sphero.updateColor = function() {
-        if (!my.running) {
-          return;
-        }
-
-        var hexColor = ((1 << 24) + (sphero.red << 16) + (sphero.green << 8) + (sphero.blue - sphero.red)) & 0xffffff;
-        sphero.setRGB(hexColor);
-      };
-
-      sphero.checkPower = function() {
-        if (my.running && sphero.shakePower > 255) {
-          sphero.blue = 255;
-          sphero.red = 0;
-          sphero.green = 0;
-
-          sphero.shakePower = 0;
-
-          sphero.emit('levelUp', sphero);
-        }
-      };
-
-      every(400, function() {
-        if (my.running) {
-          sphero.checkPower();
-          sphero.updateColor();
-        } else {
-          sphero.setColor('yellow');
-        }
-      });
-    });
 
     my.pebble.on('button', function() {
       console.log("Starting game.");
@@ -139,6 +107,40 @@ Cylon.robot({
   startGame: function(my) {
     my.countdown(my, function() {
       my.startDate = new Date();
+
+      my.spheros.map(function(sphero) {
+        sphero.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
+
+        sphero.updateColor = function() {
+          if (!my.running) {
+            return;
+          }
+
+          var hexColor = ((1 << 24) + (sphero.red << 16) + (sphero.green << 8) + (sphero.blue - sphero.red)) & 0xffffff;
+          sphero.setRGB(hexColor);
+        };
+
+        sphero.checkPower = function() {
+          if (my.running && sphero.shakePower > 255) {
+            sphero.blue = 255;
+            sphero.red = 0;
+            sphero.green = 0;
+
+            sphero.shakePower = 0;
+
+            sphero.emit('levelUp', sphero);
+          }
+        };
+
+        every(400, function() {
+          if (my.running) {
+            sphero.checkPower();
+            sphero.updateColor();
+          } else {
+            sphero.setColor('yellow');
+          }
+        });
+      });
 
       my.running = true,
 
@@ -188,46 +190,86 @@ Cylon.robot({
       collisions: 100
     };
 
-    this.salesforce.push('/RaceController/', toSend, function(err, data) {
+    this.salesforce.push('/RaceController/', data, function(err, data) {
       console.log(err);
       console.log('Race Stored:' + start.getTime() + ' has been sent to Salesforce.');
     });
   },
 
   countdown: function(my, callback) {
-
-    my.spheros.map(function(sphero) { sphero.setRGB(0xffffff); });
-
-    my.strip1.red();
-    my.strip2.red();
-
-    my.spheros.map(function(sphero) { sphero.setColor('red'); });
-
     async.series([
       function(cb) {
         after((1).second(), function() {
-          my.strip1.yellow();
-          my.strip2.yellow();
-          my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
-          cb(null, true);
+          async.parallel([
+            function(c) {
+              my.strip1.red();
+              c(null, true)
+            },
+            function(c) {
+              my.strip2.red();
+              c(null, true)
+            },
+            function(c) {
+              my.spheros.map(function(sphero) { sphero.setColor('red'); });
+              c(null, true)
+            }
+          ], function(err, results) { cb(null, true); })
+        });
+      },
+      function(cb) {
+        after((1).second(), function() {
+          async.parallel([
+            function(c) {
+              my.strip1.yellow();
+              c(null, true)
+            },
+            function(c) {
+              my.strip2.yellow();
+              c(null, true)
+            },
+            function(c) {
+              my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
+              c(null, true)
+            }
+          ], function(err, results) { cb(null, true); })
         });
       },
 
       function(cb) {
         after((1).second(), function() {
-          my.strip1.green();
-          my.strip2.green();
-          my.spheros.map(function(sphero) { sphero.setColor('green'); });
-          cb(null, true);
+          async.parallel([
+            function(c) {
+              my.strip1.green();
+              c(null, true)
+            },
+            function(c) {
+              my.strip2.green();
+              c(null, true)
+            },
+            function(c) {
+              my.spheros.map(function(sphero) { sphero.setColor('green'); });
+              c(null, true)
+            }
+          ], function(err, results) { cb(null, true); })
         });
       },
 
       function(cb) {
         after((1).second(), function() {
-          my.strip1.green(1);
-          my.strip2.green(1);
-          my.spheros.map(function(sphero) { sphero.setColor('blue'); });
-          cb(null, true);
+          async.parallel([
+            function(c) {
+              my.strip1.green(1);
+              c(null, true)
+            },
+            function(c) {
+              my.strip2.green(1);
+              c(null, true)
+            },
+            function(c) {
+              my.spheros.map(function(sphero) { sphero.setColor('blue'); });
+              c(null, true)
+            }
+          ], function(err, results) { cb(null, true); })
         });
       },
     ], callback);
