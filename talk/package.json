@@ -1,0 +1,17 @@
+{
+  "name": "talk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ardrone_delivery.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cylon": "~0.19.1",
+    "cylon-ardrone": "~0.14.0",
+    "cylon-joystick": "~0.10.0",
+    "restler": "~3.2.2"
+  }
+}
