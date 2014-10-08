@@ -138,6 +138,8 @@ Cylon.robot({
 
   startGame: function(my) {
     my.countdown(my, function() {
+      my.startDate = new Date();
+
       my.running = true,
 
       my.spheros.map(function(sphero) {
@@ -172,9 +174,24 @@ Cylon.robot({
 
       if (sphero.level === this.maxLevel) {
         this.running = false;
+        this.updateSF(this.startDate, new Date(), sphero);
         sphero.setRGB(0, 255, 0);
       }
     }.bind(this);
+  },
+
+  updateSF: function(start, end, sphero) {
+    var data = {
+      gameId: start.getTime() / 1000,
+      playerId: 'player' + Math.random(1),
+      seconds:  (end.getTime() - start.getTime()) / 1000,
+      collisions: 100
+    };
+
+    this.salesforce.push('/RaceController/', toSend, function(err, data) {
+      console.log(err);
+      console.log('Race Stored:' + start.getTime() + ' has been sent to Salesforce.');
+    });
   },
 
   countdown: function(my, callback) {
