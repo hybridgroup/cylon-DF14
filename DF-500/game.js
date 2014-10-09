@@ -90,6 +90,13 @@ Cylon.robot({
       my.pebble.send_notification("Game Time: " + data.sobject.seconds__c + " seconds");
     });
 
+    my.events.on('update', function(msg) {
+      if (msg.event === "game.end") {
+        my.salesforce.query('SELECT Id, Name, game_id__c, player_id__c, collisions__c, seconds__c FROM Race__c ORDER BY seconds__c ASC LIMIT 10', function(err, records) {
+          my.events.emit('update', { event: 'leaderboard.update', records: records });
+        });
+      }
+    });
 
     my.pebble.on('button', function() {
       console.log("Starting game.");

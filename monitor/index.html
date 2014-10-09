@@ -11,12 +11,50 @@
       height: 100%;
       padding: 0;
       margin: 0;
+      color: white;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
 
-    div[ng-view] {
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: normal;
+      color: white;
+    }
+
+    h1 {
+      font-size: 50px;
+    }
+
+    div[ng-view], div[ng-view] > div {
       width: 100%;
       height: 100%;
       overflow: hidden;
+      background-color: #015E99;
+    }
+
+    .display h1 {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      height: 10%;;
+      font-size: 90px;
+      top: 40%;
+    }
+
+    .leaderboard table {
+      width: 80%;
+      margin: 0 auto;
+      font-size: 20px;
+      text-align: center;
+      color: #efefef;
+    }
+
+    .leaderboard table th {
+      color: #bbb;
+        font-weight: 200;
+    }
+
+    h1 {
+      text-align: center;
     }
     </style>
   </head>

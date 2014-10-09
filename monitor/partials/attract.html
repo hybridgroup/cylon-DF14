@@ -1,9 +1,26 @@
 <div ng-if="active('display')" class="attract display">
-  <h1>Display</h1>
+  <h1>Compete in the Dreamforce 500!</h1>
 </div>
 
 <div ng-if="active('leaderboard')" class="attract leaderboard">
   <h1>Leaderboard</h1>
+
+  <table>
+    <thead>
+      <th> Name </th>
+      <th> Game # </th>
+      <th> Collisions </th>
+      <th> Seconds </th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="rank in leaderboard">
+        <td> {{ rank.name }} </td>
+        <td> {{ rank.game }} </td>
+        <td> {{ rank.collisions }} </td>
+        <td> {{ rank.seconds }} </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 <div ng-if="active('diagram')" class="attract diagram">

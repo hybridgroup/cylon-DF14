@@ -44,6 +44,28 @@ var AttractCtrl = function AttractCtrl($scope, $location) {
   $scope.active = function(section) {
     return section === sections[0];
   };
+
+  source.addEventListener('message', function(message) {
+    msg = JSON.parse(message.data);
+
+    if (msg.event === "leaderboard.update") {
+      $scope.$apply(function() {
+        var leaderboard = [];
+
+        for (var i = 0; i < msg.records.records.length; i++) {
+          var record = msg.records.records[i];
+          leaderboard.push({
+            name: record.player_id__c,
+            game: record.game_id__c,
+            collisions: record.collisions__c,
+            seconds: record.seconds__c
+          });
+        }
+
+        $scope.leaderboard = leaderboard;
+      });
+    }
+  });
 };
 
 var GameCtrl = function GameCtrl($scope, $location) {
