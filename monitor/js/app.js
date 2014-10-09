@@ -18,9 +18,11 @@ app.config(function($routeProvider) {
     })
 });
 
-// Global EventSource to track events emitted by the 'robot' 
+var eventURI = "http://localhost:8080/robots/DF14-Game/events/update";
 
-var AttractCtrl = function GameCtrl($scope) {
+var source = new EventSource(uri);
+
+var AttractCtrl = function AttractCtrl($scope) {
   // AttractCtrl should:
   // - display "Race in the Dreamforce 500 to WIN!"
   // - display a leaderboard of the top 5 players and their times (data from
