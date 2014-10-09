@@ -15,22 +15,35 @@ app.config(function($routeProvider) {
 
     .otherwise({
       redirectTo: "/attract"
-    })
+    });
 });
 
 var eventURI = "http://localhost:8080/robots/DF14-Game/events/update";
 
-var source = new EventSource(uri);
+// var source = new EventSource(eventURI);
 
-var AttractCtrl = function AttractCtrl($scope) {
-  // AttractCtrl should:
-  // - display "Race in the Dreamforce 500 to WIN!"
-  // - display a leaderboard of the top 5 players and their times (data from
-  //   SalesForce)
-  // - display a diagram showing how the demo works.
-  //
-  // Rotate between these three (15 seconds each?) until the game starts
-  // (EventSource receives "gameStarting" event, then redirect to "/game"
+var AttractCtrl = function AttractCtrl($scope, $location) {
+  sections = ["display", "leaderboard", "diagram"];
+
+  var rotate = setInterval(function() {
+    $scope.$apply(function() {
+      sections.push(sections.shift());
+    });
+  }, 15000);
+
+  $scope.active = function(section) {
+    return section === sections[0];
+  };
+
+  source.addEventListener('message', function(message) {
+    var msg = JSON.parse(message.data);
+
+    if (msg.event === "game.start") {
+      $scope.$apply(function() {
+        $location.path("/game");
+      });
+    }
+  });
 };
 
 var GameCtrl = function GameCtrl($scope) {

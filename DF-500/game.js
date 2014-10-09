@@ -91,6 +91,7 @@ Cylon.robot({
 
     my.pebble.on('button', function() {
       console.log("Starting game.");
+      my.emit('update', { event: 'game.start' });
 
       my.running = false;
       my.maxLevel = 6;
