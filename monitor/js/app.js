@@ -26,9 +26,14 @@ source.addEventListener('message', function(message) {
   msg = JSON.parse(message.data);
 
   if (msg.event === "game.starting") {
+    var e = document.getElementById('monitor'),
+        $injector = angular.element(e).injector(),
+        $scope = $injector.get('$rootScope');
+        $location = $injector.get('$location');
+
     $scope.$apply(function() {
       $location.path("/game");
-    });
+    })
   }
 });
 
