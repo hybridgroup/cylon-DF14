@@ -109,6 +109,8 @@ Cylon.robot({
     my.countdown(my, function() {
       my.startDate = new Date();
 
+      my.emit('update', { event: 'game.start' });
+
       my.spheros.map(function(sphero) {
         sphero.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
 
@@ -175,9 +177,12 @@ Cylon.robot({
 
       sphero.lights.green(sphero.level);
 
+      this.emit('update', { event: 'game.levelUp', sphero: sphero.name, level: sphero.level });
+
       if (sphero.level === this.maxLevel) {
         this.running = false;
         this.updateSF(this.startDate, new Date(), sphero);
+        this.emit('update', { event: 'game.end', winner: sphero.name });
         sphero.setRGB(0, 255, 0);
       }
     }.bind(this);
@@ -212,6 +217,7 @@ Cylon.robot({
             },
             function(c) {
               my.spheros.map(function(sphero) { sphero.setColor('red'); });
+              my.emit('update', { event: 'game.countdown.3' });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })
@@ -230,6 +236,7 @@ Cylon.robot({
             },
             function(c) {
               my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
+              my.emit('update', { event: 'game.countdown.2' });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })
@@ -249,6 +256,7 @@ Cylon.robot({
             },
             function(c) {
               my.spheros.map(function(sphero) { sphero.setColor('green'); });
+              my.emit('update', { event: 'game.countdown.1' });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })

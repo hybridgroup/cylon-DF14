@@ -20,7 +20,7 @@ app.config(function($routeProvider) {
 
 var eventURI = "http://localhost:8080/robots/DF14-Game/events/update";
 
-// var source = new EventSource(eventURI);
+var source = new EventSource(eventURI);
 
 var AttractCtrl = function AttractCtrl($scope, $location) {
   sections = ["display", "leaderboard", "diagram"];
@@ -47,16 +47,44 @@ var AttractCtrl = function AttractCtrl($scope, $location) {
 };
 
 var GameCtrl = function GameCtrl($scope) {
-  // GameCtrl should:
-  //
-  // - display countdown as game is about to start (driven by events from game
-  //   itself). This could display as full-background colors, with text
-  //   front-center
-  // - "power meters" (VU meters) for each player (based on events from game,
-  // maybe at 200ms intervals?)
-  // - shows winner after race finished
-  //
-  //
-  // ~10s after the race finishes, should switch back to attract mode (redirect
-  // to /attract
+  var currentState;
+
+  var states = [
+    "game.countdown.3",
+    "game.countdown.2",
+    "game.countdown.1",
+    "game.start",
+    "game.end"
+  ];
+
+  source.addEventListener('message', function(message) {
+    $scope.$apply(function() {
+      var msg = JSON.parse(message.data);
+
+      // check if event is a game state change
+      if (~states.indexOf(msg.event)) {
+        currentState = msg.event;
+      }
+
+      if (msg.event === 'game.start') {
+        $scope.spheros = {
+          sphero1: { level: 1 },
+          sphero2: { level: 1 },
+        };
+      }
+
+      if (currentState === "game.start" && msg.event === "game.levelUp") {
+        // msg.sphero should know which sphero levelled up
+        // msg.level should tell you its new level
+      }
+
+      if (msg.event === 'game.end') {
+        $scope.winner = msg.winner;
+      }
+    });
+  });
+
+  $scope.active = function(state) {
+    return state === currentState;
+  };
 };
