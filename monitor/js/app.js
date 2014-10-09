@@ -23,7 +23,13 @@ var eventURI = "http://localhost:8080/api/robots/DF14-Game/devices/events/events
 var source = new EventSource(eventURI);
 
 source.addEventListener('message', function(message) {
-  console.log(message);
+  msg = JSON.parse(message.data);
+
+  if (msg.event === "game.starting") {
+    $scope.$apply(function() {
+      $location.path("/game");
+    });
+  }
 });
 
 var AttractCtrl = function AttractCtrl($scope, $location) {
@@ -38,20 +44,10 @@ var AttractCtrl = function AttractCtrl($scope, $location) {
   $scope.active = function(section) {
     return section === sections[0];
   };
-
-  source.addEventListener('message', function(message) {
-    var msg = JSON.parse(message.data);
-
-    if (msg.event === "game.starting") {
-      $scope.$apply(function() {
-        $location.path("/game");
-      });
-    }
-  });
 };
 
-var GameCtrl = function GameCtrl($scope) {
-  var currentState;
+var GameCtrl = function GameCtrl($scope, $location) {
+  var currentState, playing = false;
 
   var states = [
     "game.countdown.3",
@@ -71,6 +67,7 @@ var GameCtrl = function GameCtrl($scope) {
       }
 
       if (msg.event === 'game.start') {
+        playing = true;
         $scope.spheros = {
           sphero1: { level: 1 },
           sphero2: { level: 1 },
@@ -78,12 +75,20 @@ var GameCtrl = function GameCtrl($scope) {
       }
 
       if (currentState === "game.start" && msg.event === "game.levelUp") {
-        // msg.sphero should know which sphero levelled up
-        // msg.level should tell you its new level
+        $scope.spheros[msg.sphero].level = msg.level;
       }
 
       if (msg.event === 'game.end') {
         $scope.winner = msg.winner;
+        playing = false;
+
+        setTimeout(function() {
+          $scope.$apply(function() {
+            if (!playing) {
+              $location.path("/attract");
+            }
+          });
+        }, 10000)
       }
     });
   });
