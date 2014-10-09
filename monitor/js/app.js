@@ -18,6 +18,15 @@ app.config(function($routeProvider) {
     });
 });
 
+app.filter('range', function() {
+  return function(val, range) {
+    range = parseInt(range);
+    for (var i=0; i<range; i++)
+      val.push(i);
+    return val;
+  };
+});
+
 var eventURI = "http://localhost:8080/api/robots/DF14-Game/devices/events/events/update";
 
 var source = new EventSource(eventURI);
@@ -97,7 +106,7 @@ var GameCtrl = function GameCtrl($scope, $location) {
         playing = true;
         $scope.spheros = {
           sphero1: { level: 1 },
-          sphero2: { level: 1 },
+          sphero2: { level: 3 },
         };
       }
 

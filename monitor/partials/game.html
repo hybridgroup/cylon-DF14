@@ -12,6 +12,12 @@
 
 <div ng-if="active('game.start')" class="game start">
   <h1>GO!</h1>
+
+  <div class="sphero" ng-repeat="sphero in spheros">
+    <span class="progress" ng-repeat="i in [] | range:sphero.level">
+      Level {{ i + 1 }}
+    </span>
+  </div>
 </div>
 
 <div ng-if="active('game.end')" class="game end">
