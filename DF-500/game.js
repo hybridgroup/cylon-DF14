@@ -48,6 +48,8 @@ Cylon.robot({
 
     { name: 'pebble', driver: 'pebble', connection: 'pebble' },
 
+    { name: 'events', driver: 'ping' }, // used for events
+
     { name: 'salesforce', driver: 'force', connection: 'sfcon' },
 
     { name: 'bulb1', driver: 'hue-light', connection: 'hue', lightId: 1 },
@@ -91,7 +93,7 @@ Cylon.robot({
 
     my.pebble.on('button', function() {
       console.log("Starting game.");
-      my.emit('update', { event: 'game.start' });
+      my.events.emit('update', { event: 'game.starting' });
 
       my.running = false;
       my.maxLevel = 6;
@@ -109,7 +111,7 @@ Cylon.robot({
     my.countdown(my, function() {
       my.startDate = new Date();
 
-      my.emit('update', { event: 'game.start' });
+      my.events.emit('update', { event: 'game.start' });
 
       my.spheros.map(function(sphero) {
         sphero.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
@@ -217,7 +219,7 @@ Cylon.robot({
             },
             function(c) {
               my.spheros.map(function(sphero) { sphero.setColor('red'); });
-              my.emit('update', { event: 'game.countdown.3' });
+              my.events.emit('update', { event: 'game.countdown.3' });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })
@@ -236,7 +238,7 @@ Cylon.robot({
             },
             function(c) {
               my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
-              my.emit('update', { event: 'game.countdown.2' });
+              my.events.emit('update', { event: 'game.countdown.2' });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })
@@ -256,7 +258,7 @@ Cylon.robot({
             },
             function(c) {
               my.spheros.map(function(sphero) { sphero.setColor('green'); });
-              my.emit('update', { event: 'game.countdown.1' });
+              my.events.emit('update', { event: 'game.countdown.1' });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })

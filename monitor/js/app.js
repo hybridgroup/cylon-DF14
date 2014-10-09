@@ -18,9 +18,13 @@ app.config(function($routeProvider) {
     });
 });
 
-var eventURI = "http://localhost:8080/robots/DF14-Game/events/update";
+var eventURI = "http://localhost:8080/api/robots/DF14-Game/devices/events/events/update";
 
 var source = new EventSource(eventURI);
+
+source.addEventListener('message', function(message) {
+  console.log(message);
+});
 
 var AttractCtrl = function AttractCtrl($scope, $location) {
   sections = ["display", "leaderboard", "diagram"];
@@ -38,7 +42,7 @@ var AttractCtrl = function AttractCtrl($scope, $location) {
   source.addEventListener('message', function(message) {
     var msg = JSON.parse(message.data);
 
-    if (msg.event === "game.start") {
+    if (msg.event === "game.starting") {
       $scope.$apply(function() {
         $location.path("/game");
       });
