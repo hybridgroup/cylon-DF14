@@ -33,11 +33,13 @@ Cylon.robot({
   ],
   airDrop: function() {
       var data = {
-        message: "Delivery sent by drone" 
+        message: "Delivery sent by drone",// string
+        id: 15,// Integer: Some number to identify all messages from one delivery, or just any randome number if not needed
       };
       this.pebble.send_notification(data.message);
-      //this.salesforce.push('/CustomerServiceController/', data, function(err, data) {
-      //  console.log(err);
+      //this.salesforce.post('/AirDeliveries/', data, function(err, data) {
+      //  console.log('err', err);
+      //  console.log('data', data);
       //});
   },
   commands: function() {
@@ -52,12 +54,14 @@ Cylon.robot({
         this.pump.digitalWrite(1);
         this.served += 1;
         var data = {
-          served:  this.served
+          served:  this.served, // integer
+          pumpId: 15,// integer: Same as above any number to identify the pump or just ignore
         };
         console.log("Total customers served: " + data.served);
       this.pebble.send_notification("Total customers served: " + data.served);
-        //this.salesforce.push('/PumpController/', data, function(err, data) {
-        //  console.log(err);
+        //this.salesforce.post('/Pumps/', data, function(err, data) {
+        //  console.log('err', err);
+        //  console.log('data', data);
         //});
         setTimeout(function() {
           this.pump.digitalWrite(0);
@@ -69,11 +73,14 @@ Cylon.robot({
     this.fault.on('press', function() {
       console.log("Pushing fault to SF.....");
       var data = {
-        fault:  "There was a pump fault"
+        fault:  "There was a pump fault",
+        pumpId: 15,// integer: Same as above any number to identify the pump or just ignore
       };
-      //this.salesforce.push('/FaultController/', data, function(err, data) {
-      //  console.log(err);
+      //this.salesforce.post('/Faults/', data, function(err, data) {
+      //  console.log('err', err);
+      //  console.log('data', data);
       //});
+      //
       //this.salesforce.subscribe('FaultMsgOutbound', function(err, data) {
       // this.pebble.send_notification("There was a fault!");
       //}.bind(this));
