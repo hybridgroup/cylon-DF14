@@ -1,15 +1,14 @@
 var cylon = require('cylon');
+var robotName = 'cylon01';
+var username = 'user';
+var password = 'password';
+// Paste Cylon.js robot code below this line
 
 cylon.robot({
-  name: 'cylon01',
+  name: robotName,
   connections: [
     { name: 'edison', adaptor: 'intel-iot' },
-    {
-      name: 'sfcon',
-      adaptor: 'force',
-      sfuser: '',
-      sfpass: ''
-    }
+    { name: 'sfcon', adaptor: 'force', sfuser: username, sfpass: password}
   ],
   device: [
     { name: 'salesforce', driver: 'force', connection: 'sfcon' },

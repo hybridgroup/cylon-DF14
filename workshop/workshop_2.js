@@ -1,7 +1,11 @@
 var cylon = require('cylon');
+var robotName = 'cylon01';
+var username = 'user';
+var password = 'password';
+// Paste Cylon.js robot code below this line
 
 cylon.robot({
-  name: 'cylon01',
+  name: robotName,
   connection: { name: 'edison', adaptor: 'intel-iot' },
   device: [
     { name: 'led', driver: 'led', pin: 4, connection: 'edison' },
