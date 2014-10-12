@@ -4,19 +4,25 @@
 
 <div ng-if="active('leaderboard')" class="attract leaderboard">
   <h1>Leaderboard</h1>
-
+  <div class="leader-title-checker">
+    <div class="leader-title-bg">
+      <h2>Dreamforce <span>500</span></h2>
+    </div>
+  </div>
   <table>
     <thead>
+      <th> Rank </th>
       <th> Name </th>
-      <th> Game # </th>
-      <th> Collisions </th>
+      <!-- <th> Game # </th>
+      <th> Collisions </th> -->
       <th> Seconds </th>
     </thead>
     <tbody>
       <tr ng-repeat="rank in leaderboard">
+        <td> {{ rank.id }} </td>
         <td> {{ rank.name }} </td>
-        <td> {{ rank.game }} </td>
-        <td> {{ rank.collisions }} </td>
+        <!-- <td> {{ rank.game }} </td>
+        <td> {{ rank.collisions }} </td> -->
         <td> {{ rank.seconds }} </td>
       </tr>
     </tbody>
