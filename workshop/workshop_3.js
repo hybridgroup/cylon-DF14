@@ -1,14 +1,14 @@
 var cylon = require('cylon');
 
 cylon.robot({
-  name: 'cylon1',
+  name: 'cylon01',
   connections: [
     { name: 'edison', adaptor: 'intel-iot' },
     {
       name: 'sfcon',
       adaptor: 'force',
-      sfuser: SF_USERNAME,
-      sfpass: SF_SECURITY_TOKEN
+      sfuser: '',
+      sfpass: '',
     }
   ],
   device: [
@@ -17,45 +17,45 @@ cylon.robot({
     { name: 'touch', driver: 'button', pin: 3, connection: 'edison' },
   ]
 })
-  .on('ready', function() {
-    this.salesforce.subscribe('BoardMsgOutbound', function(err, data) {
+  .on('ready', function(my) {
+    my.salesforce.subscribe('BoardMsgOutbound', function(err, data) {
       if (err != null) {
         console.log(err);
-      } else if (data.sobject.boardId__c === this.name) {
-        if (data.sobject.touchSensor__c === 1) {
-          this.led.turnOn();
-        } else if (data.sobject.touchSensor__c === 0) {
-          this.led.turnOff();
+      } else if (data.sobject.board_id__c === my.name) {
+        if (data.sobject.touch_sensor__c === true) {
+          my.led.turnOn();
+        } else if (data.sobject.touch_sensor__c === false) {
+          my.led.turnOff();
         }
       }
-    }.bind(this));
+    });
 
-    this.touch.on('press', function() {
+    my.touch.on('press', function() {
       var toSend = {
-        boardId: this.name,
-        touchSensor: 1
+        boardId: my.name,
+        touchSensor: true
       };
-      this.salesforce.post('/Boards/', toSend, function(err, data) {
+      my.salesforce.post('/Boards/', toSend, function(err, data) {
         if (err != null) {
           console.log("Error sending touch sensor information: " + err);
         } else {
           console.log('Board Msg has been sent to Salesforce.');
         }
       });
-    }.bind(this));
+    });
 
-    this.touch.on('release', function() {
+    my.touch.on('release', function() {
       var toSend = {
-        boardId: this.name,
-        touchSensor: 0
+        boardId: my.name,
+        touchSensor: false
       };
-      this.salesforce.post('/Boards/', toSend, function(err, data) {
+      my.salesforce.post('/Boards/', toSend, function(err, data) {
         if (err != null) {
           console.log("Error sending touch sensor information: " + err);
         } else {
           console.log('Board Msg has been sent to Salesforce.');
         }
       });
-    }.bind(this));
+    });
   })
   .start();

@@ -1,14 +1,14 @@
 var cylon = require('cylon');
 
 cylon.robot({
-  name: 'cylon1',
+  name: 'cylon01',
   connections: [
     { name: 'edison', adaptor: 'intel-iot' },
     {
       name: 'sfcon',
       adaptor: 'force',
-      sfuser: SF_USERNAME,
-      sfpass: SF_SECURITY_TOKEN
+      sfuser: '',
+      sfpass: ''
     }
   ],
   device: [
@@ -18,72 +18,73 @@ cylon.robot({
     { name: 'sensor', driver: 'analogSensor', pin: 0, connection: 'edison' }
   ]
 })
-  .on('ready', function() {
+  .on('ready', function(my) {
     var ready = false;
     var sensorVal = 0;
-    this.salesforce.subscribe('BoardMsgOutbound', function(err, data) {
+    my.salesforce.subscribe('BoardMsgOutbound', function(err, data) {
       if (err != null) {
         console.log(err);
-      } else if (data.sobject.boardId__c === this.name) {
-        if (data.sobject.touchSensor__c === 1) {
-          this.led.turnOn();
-        } else if (data.sobject.touchSensor__c === 0) {
-          this.led.turnOff();
+      } else if (data.sobject.board_id__c === my.name) {
+        if (data.sobject.touch_sensor__c === true) {
+          my.led.turnOn();
+        } else if (data.sobject.touch_sensor__c === false) {
+          my.led.turnOff();
         }
-        var sensor = data.sobject.analogSensor__c;
+        var sensor = data.sobject.analog_sensor__c;
         if (sensor != null) {
           console.log("Reading: " + sensor);
         }
       }
-    }.bind(this));
+    });
 
-    this.touch.on('press', function() {
+    my.touch.on('press', function() {
       ready = true;
       var toSend = {
-        boardId: this.name,
-        touchSensor: 1
+        boardId: my.name,
+        touchSensor: true
       };
-      this.salesforce.post('/Boards/', toSend, function(err, data) {
+      my.salesforce.post('/Boards/', toSend, function(err, data) {
         if (err != null) {
           console.log("Error sending touch sensor information: " + err);
         } else {
           console.log('Board Msg has been sent to Salesforce.');
         }
       });
-    }.bind(this));
+    });
 
-    this.touch.on('release', function() {
+    my.touch.on('release', function() {
       ready = false;
       var toSend = {
-        boardId: this.name,
-        touchSensor: 0
+        boardId: my.name,
+        touchSensor: false 
       };
-      this.salesforce.post('/Boards/', toSend, function(err, data) {
+      my.salesforce.post('/Boards/', toSend, function(err, data) {
         if (err != null) {
           console.log("Error sending touch sensor information: " + err);
         } else {
           console.log('Board Msg has been sent to Salesforce.');
         }
       });
-    }.bind(this));
+    });
 
-    this.sensor.on('analogRead', function(data) {
+    my.sensor.on('analogRead', function(data) {
       sensorVal = data;
     });
 
     setInterval(function() {
       if (ready) {
         var toSend = {
-          message: this.name,
-          analog2: sensorVal
+          boardId: my.name,
+          touchSensor: true,
+          analogSensor: sensorVal
         };
-        this.salesforce.post('/Boards/', toSend, function(err, data) {
+        my.salesforce.post('/Boards/', toSend, function(err, data) {
         if (err != null) {
           console.log("Error sending analog sensor information: " + err);
         }
         });
       }
-    }.bind(this), 2000);
+    }, 2000);
   })
   .start();
 
