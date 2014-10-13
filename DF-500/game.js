@@ -6,6 +6,14 @@ var Cylon = require('cylon'),
 
 var LightStrip = require('./lightstrip');
 
+function rgbToHex(r, g, b) {
+  return ((1 << 24) + (r << 16) + (g << 8) + (b)) & 0xffffff;
+}
+
+function randomNumber() {
+  return Math.floor(Math.random() * 255)
+}
+
 Cylon.config({
   api: {
     ssl: false,
@@ -85,10 +93,11 @@ Cylon.robot({
     my.pebble.send_notification('Initialized.');
 
     my.salesforce.subscribe('RaceMsgOutbound', function(err, data) {
-      console.log('arguments: ', arguments);
-      console.log('err received:', err);
-      console.log('data received:', data);
-      my.pebble.send_notification("Game Time: " + data.sobject.seconds__c + " seconds");
+      if (err != null) {
+        console.log('RaceMsgOutbound error: ', err);
+      } else {
+        my.pebble.send_notification("Game Time: " + data.sobject.seconds__c + " seconds");
+      }
     });
 
     my.events.on('update', function(msg) {
@@ -114,32 +123,28 @@ Cylon.robot({
       my.startGame(my);
     });
   },
-
   startGame: function(my) {
     my.countdown(my, function() {
-      my.startDate = new Date();
+      my.startDate = process.hrtime();
 
       my.events.emit('update', { event: 'game.start' });
 
       my.spheros.map(function(sphero) {
-        sphero.setDataStreaming(['velocity'], { n: 40, m: 1, pcnt: 0 });
+        sphero.detectCollisions();
 
         sphero.updateColor = function() {
           if (!my.running) {
             return;
           }
 
-          var hexColor = ((1 << 24) + (sphero.red << 16) + (sphero.green << 8) + (sphero.blue - sphero.red)) & 0xffffff;
-          sphero.setRGB(hexColor);
+          sphero.setRGB(rgbToHex(sphero.red, sphero.green, sphero.blue));
         };
 
         sphero.checkPower = function() {
-          if (my.running && sphero.shakePower > 255) {
-            sphero.blue = 255;
-            sphero.red = 0;
+          if (my.running && sphero.green > 255) {
+            sphero.blue = 0;
+            sphero.red = 255;
             sphero.green = 0;
-
-            sphero.shakePower = 0;
 
             sphero.emit('levelUp', sphero);
           }
@@ -149,9 +154,7 @@ Cylon.robot({
           if (my.running) {
             sphero.checkPower();
             sphero.updateColor();
-          } else {
-            sphero.setColor('yellow');
-          }
+          }         
         });
       });
 
@@ -160,16 +163,12 @@ Cylon.robot({
       my.spheros.map(function(sphero) {
         sphero.level = 1;
 
-        sphero.red = 0;
+        sphero.red = 255;
         sphero.green = 0;
         sphero.blue = 0;
 
-        sphero.shakePower = 0;
-
-        sphero.on('data', function(data) {
-          var delta = Math.max(Math.abs(data[0]), Math.abs(data[1])) / 50 | 0;
-          sphero.shakePower += delta;
-          sphero.red = sphero.shakePower;
+        sphero.on('collision', function(data) {
+          sphero.green += 2;
         });
 
         sphero.on('levelUp', my.levelUp());
@@ -185,32 +184,52 @@ Cylon.robot({
 
       sphero.level++;
 
-      sphero.lights.green(sphero.level);
+      sphero.lights.yellow(sphero.level);
 
       this.emit('update', { event: 'game.levelUp', sphero: sphero.name, level: sphero.level });
 
       if (sphero.level === this.maxLevel) {
         this.running = false;
-        this.updateSF(this.startDate, new Date(), sphero);
+        this.updateSF(process.hrtime(this.startDate), sphero);
         this.emit('update', { event: 'game.end', winner: sphero.name });
-        sphero.setRGB(0, 255, 0);
+        var fns = [];
+        for (var i = 0; i < 20; i++) {
+          fns.push(function(cb) {
+            setTimeout(function() {
+              sphero.lights.random();
+              sphero.setRGB(rgbToHex(randomNumber(), randomNumber(), randomNumber()));
+              cb(null, true);
+            }, 400);
+          });
+        }
+        async.series(
+          fns, 
+          function(err, results) { 
+            if (err != null) { 
+              console.log(err); 
+            }           
+          }
+        );
       }
     }.bind(this);
   },
 
-  updateSF: function(start, end, sphero) {
+  updateSF: function(diff, sphero) {
     var playerIndex = parseInt(sphero.name.slice(-1)) - 1;
     var data = {
-      gameId: start.getTime() / 1000,
+      gameId: (this.startDate[0] * 1e9 + this.startDate[1]),
       playerId: this.players[playerIndex],
-      seconds:  (end.getTime() - start.getTime()) / 1000,
+      seconds:  (diff[0]* 1e9 + diff[1]) / 1000000000.0,
       collisions: 100
     };
 
     this.salesforce.push('/RaceController/', data, function(err, data) {
-      console.log(err);
-      console.log('Race Stored:' + start.getTime() + ' has been sent to Salesforce.');
-    });
+      if (err != null) {
+        console.log("/RaceController/ error: ", err);
+      } else {
+        console.log('Race Stored:' + (this.startDate[0] * 1e9 + this.startDate[1]) + ' has been sent to Salesforce.');
+      }
+    }.bind(this));
   },
 
   countdown: function(my, callback) {
@@ -238,15 +257,15 @@ Cylon.robot({
         after((1).second(), function() {
           async.parallel([
             function(c) {
-              my.strip1.yellow();
+              my.strip1.orange();
               c(null, true)
             },
             function(c) {
-              my.strip2.yellow();
+              my.strip2.orange();
               c(null, true)
             },
             function(c) {
-              my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
+              my.spheros.map(function(sphero) { sphero.setColor('orange'); });
               my.events.emit('update', { event: 'game.countdown.2' });
               c(null, true)
             }
@@ -258,15 +277,15 @@ Cylon.robot({
         after((1).second(), function() {
           async.parallel([
             function(c) {
-              my.strip1.green();
+              my.strip1.yellow();
               c(null, true)
             },
             function(c) {
-              my.strip2.green();
+              my.strip2.yellow();
               c(null, true)
             },
             function(c) {
-              my.spheros.map(function(sphero) { sphero.setColor('green'); });
+              my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
               my.events.emit('update', { event: 'game.countdown.1' });
               c(null, true)
             }
@@ -278,15 +297,15 @@ Cylon.robot({
         after((1).second(), function() {
           async.parallel([
             function(c) {
-              my.strip1.green(1);
+              my.strip1.yellow(1);
               c(null, true)
             },
             function(c) {
-              my.strip2.green(1);
+              my.strip2.yellow(1);
               c(null, true)
             },
             function(c) {
-              my.spheros.map(function(sphero) { sphero.setColor('blue'); });
+              my.spheros.map(function(sphero) { sphero.setColor('yellow'); });
               c(null, true)
             }
           ], function(err, results) { cb(null, true); })

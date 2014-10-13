@@ -1,5 +1,9 @@
 "use strict";
 
+function randomNumber() {
+  return Math.floor(Math.random() * 255);
+}
+
 var LightStrip = module.exports = function LightStrip(lights) {
   this.lights = lights;
   this.lights.map(function(light) {
@@ -36,14 +40,18 @@ LightStrip.prototype.color = function(num, color) {
   });
 }
 
-LightStrip.prototype.green = function(num) {
+LightStrip.prototype.yellow = function(num) {
   this.color(num, { r: 0, g: 255, b: 0 });
 };
 
-LightStrip.prototype.yellow = function(num) {
+LightStrip.prototype.orange = function(num) {
   this.color(num, { r: 255, g: 255, b: 0 });
 };
 
 LightStrip.prototype.red = function(num) {
   this.color(num, { r: 255, g: 0, b: 0 });
+};
+
+LightStrip.prototype.random = function(num) {
+  this.color(num, { r: randomNumber(), g: randomNumber(), b: randomNumber() });
 };
