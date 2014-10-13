@@ -1,4 +1,4 @@
-// SF_USERNAME=cylon-df-2014@yopmail.com SF_SECURITY_TOKEN=Passw0rdE0n1sDlQOoelDlYwmnRsALSa HUE_HOST=192.168.1.85 HUE_USERNAME=35dacee025cd94cf3f50bb301ad8b4bf node game.js
+// SF_USERNAME=cylon-df14-demo@yopmail.com SF_SECURITY_TOKEN=Passw0rdjnFaimsdEu2D4QrtsVyGn0yCP HUE_HOST=192.168.0.39 HUE_USERNAME=35dacee025cd94cf3f50bb301ad8b4bf node game.js
 "use strict";
 
 var Cylon = require('cylon'),
@@ -27,7 +27,7 @@ Cylon.api();
 Cylon.robot({
   name: "DF14-Game",
 
-  running: false,
+  gameRunning: false,
   players: ['',''],
 
   connections: [
@@ -110,25 +110,29 @@ Cylon.robot({
     });
 
     my.pebble.on('button', function() {
-      if (my.players[0] === '' || my.players[1] === '') {
-        var message = "Player ID's are not set"; 
-        console.log(message);
-        my.pebble.send_notification(message);
+      if (!my.gameRunning) {
+        if (my.players[0] === '' || my.players[1] === '') {
+          var message = "Player ID's are not set"; 
+          console.log(message);
+          my.pebble.send_notification(message);
+        } else {
+          var message = "Starting game";
+          console.log(message);
+          my.pebble.send_notification(message);
+          my.events.emit('update', { event: 'game.starting' });
+
+          my.gameRunning = true;
+          my.maxLevel = 6;
+
+          my.spheros.map(function(sphero) {
+            sphero.removeAllListeners('levelUp');
+            sphero.removeAllListeners('data');
+          });
+
+          my.startGame(my);
+        }
       } else {
-        var message = "Starting game";
-        console.log(message);
-        my.pebble.send_notification(message);
-        my.events.emit('update', { event: 'game.starting' });
-
-        my.running = false;
-        my.maxLevel = 6;
-
-        my.spheros.map(function(sphero) {
-          sphero.removeAllListeners('levelUp');
-          sphero.removeAllListeners('data');
-        });
-
-        my.startGame(my);
+        console.log("game already running");
       }
     });
   },
@@ -148,7 +152,7 @@ Cylon.robot({
         sphero.detectCollisions();
 
         sphero.updateColor = function() {
-          if (!my.running) {
+          if (!my.gameRunning) {
             return;
           }
 
@@ -156,7 +160,7 @@ Cylon.robot({
         };
 
         sphero.checkPower = function() {
-          if (my.running && sphero.green > 255) {
+          if (my.gameRunning && sphero.green > 255) {
             sphero.blue = 0;
             sphero.red = 255;
             sphero.green = 0;
@@ -166,14 +170,14 @@ Cylon.robot({
         };
 
         every(400, function() {
-          if (my.running) {
+          if (my.gameRunning) {
             sphero.checkPower();
             sphero.updateColor();
           }         
         });
       });
 
-      my.running = true,
+      my.gameRunning = true,
 
       my.spheros.map(function(sphero) {
         sphero.level = 1;
@@ -193,7 +197,7 @@ Cylon.robot({
 
   levelUp: function() {
     return function(sphero) {
-      if (!this.running) {
+      if (!this.gameRunning) {
         return;
       }
 
@@ -204,7 +208,7 @@ Cylon.robot({
       this.emit('update', { event: 'game.levelUp', sphero: sphero.name, level: sphero.level });
 
       if (sphero.level === this.maxLevel) {
-        this.running = false;
+        this.gameRunning = false;
         this.updateSF(process.hrtime(this.startDate), sphero);
         this.emit('update', { event: 'game.end', winner: sphero.name });
         this.players = ['',''];
