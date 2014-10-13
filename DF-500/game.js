@@ -90,6 +90,7 @@ Cylon.robot({
       my.sphero2
     ];
 
+    this.resetGame();
     my.pebble.send_notification('Initialized.');
 
     my.salesforce.subscribe('RaceMsgOutbound', function(err, data) {
@@ -130,6 +131,12 @@ Cylon.robot({
         my.startGame(my);
       }
     });
+  },
+  resetGame: function() {
+    this.sphero1.setColor("red");
+    this.sphero1.lights.red();
+    this.sphero2.setColor("orange");
+    this.sphero2.lights.orange();
   },
   startGame: function(my) {
     my.countdown(my, function() {
@@ -216,8 +223,10 @@ Cylon.robot({
           function(err, results) { 
             if (err != null) { 
               console.log(err); 
-            }           
-          }
+            } else {           
+              this.resetGame();
+            }
+          }.bind(this)
         );
       }
     }.bind(this);
