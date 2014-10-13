@@ -14,10 +14,10 @@
     "cylon-firmata": "~0.16.0",
     "cylon-force": "~0.12.1",
     "cylon-gpio": "~0.19.0",
-    "cylon-hue": "~0.1.0",
     "cylon-i2c": "~0.16.1",
     "cylon-pebble": "~0.12.1",
-    "cylon-sphero": "~0.15.0",
+    "cylon-hue": "git://github.com/hybridgroup/cylon-hue.git#transition",
+    "cylon-sphero": "git://github.com/hybridgroup/cylon-sphero.git#tweak_collisions",
     "request": "~2.45.0"
   }
 }
