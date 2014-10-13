@@ -110,9 +110,13 @@ Cylon.robot({
 
     my.pebble.on('button', function() {
       if (my.players[0] === '' || my.players[1] === '') {
-        console.log("Player ID's are not set");
+        var message = "Player ID's are not set"; 
+        console.log(message);
+        my.pebble.send_notification(message);
       } else {
-        console.log("Starting game.");
+        var message = "Starting game";
+        console.log(message);
+        my.pebble.send_notification(message);
         my.events.emit('update', { event: 'game.starting' });
 
         my.running = false;
