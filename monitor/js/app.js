@@ -47,7 +47,7 @@ source.addEventListener('message', function(message) {
 });
 
 var AttractCtrl = function AttractCtrl($scope, $location) {
-  sections = ["display", "leaderboard", "diagram"];
+  sections = ["display", "promo", "leaderboard", "diagram"];
 
   var rotate = setInterval(function() {
     $scope.$apply(function() {

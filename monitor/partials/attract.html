@@ -1,14 +1,18 @@
 <div ng-if="active('display')" class="attract display">
-  <h1>Compete in the Dreamforce 500!</h1>
+  <h1>Dreamforce 500</h1>
+  <h2>Compete to win the new Ollie from Orbotix</h2>
+</div>
+
+<div ng-if="active('promo')" class="attract promo">
+  <h1>Brought to you by your friends at</h1>
+  <a href="http://hybridgroup.com"><img src="./images/hybrid-logo.png" /></a>
+
+  <h2>Creators of</h2>
+  <div id="cylon-logo"></div>
 </div>
 
 <div ng-if="active('leaderboard')" class="attract leaderboard">
-  <div class="leader-title-checker">
-    <div class="leader-title-bg">
-      <h2>Dreamforce <span>500</span></h2>
-    </div>
-  </div>
-  <iframe src="http://dreamforce500-leaderboard.herokuapp.com/"></iframe>
+  <iframe src="http://cylonjs-dreamforce500.herokuapp.com/"></iframe>
   <!-- <table>
     <thead>
       <th> Rank </th>
