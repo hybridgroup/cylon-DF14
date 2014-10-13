@@ -96,7 +96,7 @@ Cylon.robot({
       if (err != null) {
         console.log('RaceMsgOutbound error: ', err);
       } else {
-        my.pebble.send_notification("Game Time: " + data.sobject.seconds__c + " seconds");
+        my.pebble.send_notification("Player " + data.sobject.player_id__c + " won with a game time of " + data.sobject.seconds__c + " seconds");
       }
     });
 
@@ -109,18 +109,22 @@ Cylon.robot({
     });
 
     my.pebble.on('button', function() {
-      console.log("Starting game.");
-      my.events.emit('update', { event: 'game.starting' });
+      if (my.players[0] === '' || my.players[1] === '') {
+        console.log("Player ID's are not set");
+      } else {
+        console.log("Starting game.");
+        my.events.emit('update', { event: 'game.starting' });
 
-      my.running = false;
-      my.maxLevel = 6;
+        my.running = false;
+        my.maxLevel = 6;
 
-      my.spheros.map(function(sphero) {
-        sphero.removeAllListeners('levelUp');
-        sphero.removeAllListeners('data');
-      });
+        my.spheros.map(function(sphero) {
+          sphero.removeAllListeners('levelUp');
+          sphero.removeAllListeners('data');
+        });
 
-      my.startGame(my);
+        my.startGame(my);
+      }
     });
   },
   startGame: function(my) {
@@ -192,6 +196,7 @@ Cylon.robot({
         this.running = false;
         this.updateSF(process.hrtime(this.startDate), sphero);
         this.emit('update', { event: 'game.end', winner: sphero.name });
+        this.players = ['',''];
         var fns = [];
         for (var i = 0; i < 20; i++) {
           fns.push(function(cb) {
@@ -315,9 +320,11 @@ Cylon.robot({
   },
   setPlayer1: function(id) {
     this.players[0] = id;
+    console.log("Player 1: " + this.players[0]);
   },
   setPlayer2: function(id) {
     this.players[1] = id;
+    console.log("Player 2: " + this.players[1]);
   },
   commands: function() {
     return {
