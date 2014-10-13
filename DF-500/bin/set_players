@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+var args = process.argv;
+var request = require('request');
+
+if (args.length < 4) {
+  console.log("You need to pass two player ids like this: 'set_players player1@mail.com player2@mail.com'")
+} else {
+  request.post({
+    url: 'http://localhost:8080/api/robots/DF14-Game/commands/setPlayer1',
+    form: {id: args[2]}
+  });
+
+  request.post({
+    url: 'http://localhost:8080/api/robots/DF14-Game/commands/setPlayer2',
+    form: {id: args[3]}
+  });
+}
