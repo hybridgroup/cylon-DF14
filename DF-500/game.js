@@ -20,6 +20,7 @@ Cylon.robot({
   name: "DF14-Game",
 
   running: false,
+  players: ['',''],
 
   connections: [
     { name: 'sphero1', adaptor: 'sphero', port: '/dev/rfcomm0' },
@@ -198,9 +199,10 @@ Cylon.robot({
   },
 
   updateSF: function(start, end, sphero) {
+    var playerIndex = parseInt(sphero.name.slice(-1)) - 1;
     var data = {
       gameId: start.getTime() / 1000,
-      playerId: 'player' + Math.random(1),
+      playerId: this.players[playerIndex],
       seconds:  (end.getTime() - start.getTime()) / 1000,
       collisions: 100
     };
@@ -291,6 +293,18 @@ Cylon.robot({
         });
       },
     ], callback);
+  },
+  setPlayer1: function(id) {
+    this.players[0] = id;
+  },
+  setPlayer2: function(id) {
+    this.players[1] = id;
+  },
+  commands: function() {
+    return {
+      setPlayer1: this.setPlayer1,
+      setPlayer2: this.setPlayer2
+    };
   }
 });
 
