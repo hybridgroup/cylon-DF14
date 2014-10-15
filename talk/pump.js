@@ -14,37 +14,61 @@ Cylon.robot({
   name: 'pebble',
   served: 0,
   pumping: false,
+  dispenserId: 15,
+  droneId: 5,
   connections: [
     { name: 'pebble', adaptor: 'pebble' },
-    { name: 'arduino', adaptor: 'firmata', port: '/dev/ttyACM0' },
-    //{ 
-    //  name: 'sfcon', 
-    //  adaptor: 'force', 
-    //  sfuser: process.env.SF_USERNAME, 
-    //  sfpass: process.env.SF_SECURITY_TOKEN 
-    //}
+    { name: 'edison', adaptor: 'intel-iot' },
+    { 
+      name: 'sfcon', 
+      adaptor: 'force', 
+      sfuser: process.env.SF_USERNAME, 
+      sfpass: process.env.SF_SECURITY_TOKEN 
+    }
   ],
   devices: [
-    { name: 'pump', driver: 'direct-pin', pin: 6, connection: 'arduino' },
-    { name: 'tap', driver: 'button', pin: 4, connection: 'arduino' },
-    { name: 'fault', driver: 'button', pin: 2, connection: 'arduino' },
+    { name: 'pump', driver: 'direct-pin', pin: 6, connection: 'edison' },
+    { name: 'tap', driver: 'button', pin: 4, connection: 'edison' },
+    { name: 'fault', driver: 'button', pin: 2, connection: 'edison' },
     { name: 'pebble', driver: 'pebble', connection: 'pebble' },
-    //{ name: 'salesforce', driver: 'force', connection: 'sfcon' }
+    { name: 'salesforce', driver: 'force', connection: 'sfcon' }
   ],
   airDrop: function() {
-      var data = {
-        message: "Delivery sent by drone",// string
-        id: 15,// Integer: Some number to identify all messages from one delivery, or just any randome number if not needed
-      };
-      this.pebble.send_notification(data.message);
-      //this.salesforce.post('/AirDeliveries/', data, function(err, data) {
-      //  console.log('err', err);
-      //  console.log('data', data);
-      //});
+    var date = new Date();
+    var dateStr = date.toISOString();
+    var toSend = { 
+      dispenserId: this.droneId,
+      drinkId: this.served,
+      event: 'en route',
+      eventTimestamp: dateStr,
+      details: 'drone'
+    };
+    this.pebble.send_notification("delivery sent by drone");
+    this.salesforce.post('/Drink/', toSend, function(err, data) {
+      console.log('airDrop Err:', err);
+      console.log('airDrop Data:', data);
+    });
+  },
+  delivered: function() {
+    var date = new Date();
+    var dateStr = date.toISOString();
+    var toSend = { 
+      dispenserId: this.droneId,
+      drinkId: this.served,
+      event: 'delivery complete',
+      eventTimestamp: dateStr,
+      details: 'drone'
+    };
+    this.pebble.send_notification("delivery sent by drone");
+    this.salesforce.post('/Drink/', toSend, function(err, data) {
+      console.log('delivered Err:', err);
+      console.log('delivered Data:', data);
+    });
   },
   commands: function() {
     return {
-      air_drop: this.airDrop
+      air_drop: this.airDrop,
+      delivered: this.delivered
     };
   },
   work: function() {
@@ -53,16 +77,20 @@ Cylon.robot({
         this.pumping = true;
         this.pump.digitalWrite(1);
         this.served += 1;
-        var data = {
-          served:  this.served, // integer
-          pumpId: 15,// integer: Same as above any number to identify the pump or just ignore
+        var date = new Date(),
+            dateStr = date.toISOString(),
+            toSend = { dispenserId: this.dispenserId,
+                       drinkId: this.served,
+                       event: 'online',
+                       eventTimestamp: dateStr,
+                       details: 'dispenser'
         };
-        console.log("Total customers served: " + data.served);
-      this.pebble.send_notification("Total customers served: " + data.served);
-        //this.salesforce.post('/Pumps/', data, function(err, data) {
-        //  console.log('err', err);
-        //  console.log('data', data);
-        //});
+        console.log("Total customers served: " + toSend.drinkId);
+        this.pebble.send_notification("Total customers served: " + toSend.drinkId);
+        this.salesforce.post('/Drink/', toSend, function(err, data) {
+          console.log('Err:', err);
+          console.log('Data:', data);
+        });
         setTimeout(function() {
           this.pump.digitalWrite(0);
           this.pumping = false;
@@ -72,19 +100,19 @@ Cylon.robot({
 
     this.fault.on('press', function() {
       console.log("Pushing fault to SF.....");
-      var data = {
-        fault:  "There was a pump fault",
-        pumpId: 15,// integer: Same as above any number to identify the pump or just ignore
-      };
-      //this.salesforce.post('/Faults/', data, function(err, data) {
-      //  console.log('err', err);
-      //  console.log('data', data);
-      //});
-      //
-      //this.salesforce.subscribe('FaultMsgOutbound', function(err, data) {
-      // this.pebble.send_notification("There was a fault!");
-      //}.bind(this));
-      this.pebble.send_notification(data.fault);
+      var date = new Date(),
+          dateStr = date.toISOString(),
+          toSend = { dispenserId: this.dispenserId,
+                     drinkId: this.served,
+                     event: 'error',
+                     eventTimestamp: dateStr,
+                     details: 'dispenser'
+		      };
+      this.pebble.send_notification("there was an error");
+      this.salesforce.post('/Drink/', toSend, function(err, data) {
+        console.log('Err:', err);
+        console.log('Data:', data);
+      });
     }.bind(this));
   }
 }).start();
